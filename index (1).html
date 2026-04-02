@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUREA — Autonomous Unified Regenerative Ecosystem for Agriculture</title>
+  <meta name="description" content="A fully autonomous, closed-loop food ecosystem designed to sustain a Mars crew with minimal Earth dependency." />
+  <meta property="og:title" content="AUREA — Mars Food System Proposal" />
+  <meta property="og:description" content="NASA Mars Food Challenge Submission by Shiann Davis" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;600;700;900&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --rust:       #c1440e;
+      --rust-dim:   #8b2e08;
+      --rust-glow:  #e8541a;
+      --amber:      #f59e0b;
+      --amber-dim:  #92400e;
+      --dust:       #d4a574;
+      --surface:    #0a0805;
+      --surface-1:  #110e0a;
+      --surface-2:  #1a150f;
+      --surface-3:  #241c14;
+      --text-pri:   #f0e6d8;
+      --text-sec:   #a89880;
+      --text-dim:   #5c4f3d;
+      --green-sys:  #22c55e;
+      --blue-sys:   #3b82f6;
+      --red-sys:    #ef4444;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--surface);
+      color: var(--text-pri);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ─── NOISE OVERLAY ─────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.4;
+    }
+
+    /* ─── SCANLINES ─────────────────────────────────────── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 2px,
+        rgba(0,0,0,0.07) 2px,
+        rgba(0,0,0,0.07) 4px
+      );
+      pointer-events: none;
+      z-index: 998;
+    }
+
+    /* ─── ANIMATED STARS ────────────────────────────────── */
+    .stars {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .stars span {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle var(--dur, 3s) ease-in-out infinite var(--delay, 0s);
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.15; }
+      50% { opacity: 0.9; }
+    }
+
+    /* ─── NAVBAR ────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 16px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(to bottom, rgba(10,8,5,0.95), transparent);
+      backdrop-filter: blur(2px);
+    }
+
+    .nav-logo {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.1rem;
+      font-weight: 900;
+      letter-spacing: 0.3em;
+      color: var(--rust-glow);
+      text-shadow: 0 0 20px var(--rust);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-sec);
+      text-decoration: none;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--dust); }
+
+    /* ─── HERO ──────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 120px 40px 80px;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .hero-planet {
+      position: absolute;
+      bottom: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 900px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at 35% 30%,
+        #c1440e 0%,
+        #8b2e08 30%,
+        #5c1e04 55%,
+        #1a0800 80%,
+        #0a0300 100%
+      );
+      box-shadow:
+        inset -60px -40px 120px rgba(0,0,0,0.7),
+        0 0 120px rgba(193,68,14,0.15),
+        0 0 400px rgba(139,46,8,0.08);
+      opacity: 0.7;
+    }
+
+    .hero-planet::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: repeating-linear-gradient(
+        -35deg,
+        transparent 0px,
+        transparent 8px,
+        rgba(0,0,0,0.08) 8px,
+        rgba(0,0,0,0.08) 10px
+      );
+    }
+
+    .badge {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--rust-glow);
+      border: 1px solid var(--rust-dim);
+      padding: 6px 20px;
+      border-radius: 2px;
+      margin-bottom: 32px;
+      animation: fadeUp 0.8s ease both;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(4rem, 12vw, 10rem);
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      line-height: 0.9;
+      color: var(--text-pri);
+      text-shadow:
+        0 0 60px rgba(193,68,14,0.5),
+        0 0 120px rgba(193,68,14,0.2);
+      animation: fadeUp 0.8s 0.15s ease both;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-sub {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(0.85rem, 2vw, 1rem);
+      font-weight: 400;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--dust);
+      margin-top: 16px;
+      animation: fadeUp 0.8s 0.3s ease both;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-desc {
+      max-width: 640px;
+      font-size: 1.15rem;
+      font-weight: 400;
+      color: var(--text-sec);
+      margin-top: 32px;
+      line-height: 1.7;
+      animation: fadeUp 0.8s 0.45s ease both;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      margin-top: 48px;
+      animation: fadeUp 0.8s 0.6s ease both;
+      position: relative;
+      z-index: 2;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 14px 32px;
+      background: var(--rust);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .btn-primary:hover {
+      background: var(--rust-glow);
+      box-shadow: 0 0 30px rgba(193,68,14,0.5);
+    }
+
+    .btn-ghost {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 13px 32px;
+      background: transparent;
+      color: var(--dust);
+      border: 1px solid var(--rust-dim);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-ghost:hover {
+      border-color: var(--dust);
+      color: var(--text-pri);
+    }
+
+    /* ─── SECTION WRAPPER ───────────────────────────────── */
+    .section {
+      position: relative;
+      z-index: 2;
+      padding: 100px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--rust-glow);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .section-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(1.6rem, 4vw, 2.8rem);
+      font-weight: 700;
+      color: var(--text-pri);
+      margin-bottom: 48px;
+      letter-spacing: 0.05em;
+    }
+
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--rust-dim), transparent);
+      margin: 0 auto;
+      opacity: 0.4;
+    }
+
+    /* ─── PROBLEM STRIP ─────────────────────────────────── */
+    .problem-strip {
+      background: var(--surface-1);
+      border-top: 1px solid rgba(193,68,14,0.15);
+      border-bottom: 1px solid rgba(193,68,14,0.15);
+      padding: 60px 40px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .problem-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+    }
+
+    .problem-item {
+      text-align: center;
+      padding: 32px;
+      border: 1px solid var(--surface-3);
+      background: var(--surface-2);
+      clip-path: polygon(16px 0%, 100% 0%, calc(100% - 16px) 100%, 0% 100%);
+    }
+
+    .problem-num {
+      font-family: 'Orbitron', monospace;
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--rust);
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .problem-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-sec);
+    }
+
+    /* ─── LOOP DIAGRAM ──────────────────────────────────── */
+    .loop-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 48px 0;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.8rem;
+    }
+
+    .loop-node {
+      background: var(--surface-2);
+      border: 1px solid var(--rust-dim);
+      color: var(--dust);
+      padding: 12px 24px;
+      letter-spacing: 0.1em;
+      clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+      white-space: nowrap;
+    }
+
+    .loop-arrow {
+      color: var(--rust-glow);
+      font-size: 1.2rem;
+    }
+
+    /* ─── SUBSYSTEMS ────────────────────────────────────── */
+    .systems-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 2px;
+      background: rgba(193,68,14,0.08);
+      border: 1px solid rgba(193,68,14,0.12);
+    }
+
+    .sys-card {
+      background: var(--surface-1);
+      padding: 36px;
+      transition: background 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .sys-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 100%;
+      background: var(--rust);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .sys-card:hover { background: var(--surface-2); }
+    .sys-card:hover::before { opacity: 1; }
+
+    .sys-num {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.6rem;
+      color: var(--rust-dim);
+      letter-spacing: 0.2em;
+      margin-bottom: 12px;
+    }
+
+    .sys-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-pri);
+      margin-bottom: 16px;
+      letter-spacing: 0.05em;
+    }
+
+    .sys-desc {
+      color: var(--text-sec);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .sys-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 20px;
+    }
+
+    .tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--rust-glow);
+      border: 1px solid var(--rust-dim);
+      padding: 3px 10px;
+      background: rgba(193,68,14,0.05);
+    }
+
+    /* ─── ENERGY TABLE ──────────────────────────────────── */
+    .energy-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+
+    .power-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.8rem;
+    }
+
+    .power-table th {
+      text-align: left;
+      padding: 12px 16px;
+      color: var(--rust-glow);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-size: 0.65rem;
+      border-bottom: 1px solid var(--rust-dim);
+      background: var(--surface-2);
+    }
+
+    .power-table td {
+      padding: 12px 16px;
+      color: var(--text-sec);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .power-table tr:hover td { background: var(--surface-2); color: var(--text-pri); }
+
+    .power-bar-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .power-bar-item { }
+    .power-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-sec);
+      margin-bottom: 6px;
+    }
+    .power-bar-track {
+      height: 6px;
+      background: var(--surface-3);
+      position: relative;
+    }
+    .power-bar-fill {
+      position: absolute;
+      top: 0; left: 0; height: 100%;
+      background: linear-gradient(to right, var(--rust), var(--rust-glow));
+      transition: width 1s ease;
+    }
+
+    /* ─── FOOD OUTPUT ───────────────────────────────────── */
+    .food-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 2px;
+      background: rgba(193,68,14,0.06);
+      border: 1px solid rgba(193,68,14,0.1);
+    }
+
+    .food-card {
+      background: var(--surface-1);
+      padding: 28px 24px;
+      text-align: center;
+    }
+
+    .food-icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+    }
+
+    .food-name {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-sec);
+      margin-bottom: 8px;
+    }
+
+    .food-amount {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--dust);
+    }
+
+    .food-unit {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+    }
+
+    /* ─── RESILIENCE ────────────────────────────────────── */
+    .resilience-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .res-card {
+      background: var(--surface-2);
+      border: 1px solid var(--surface-3);
+      padding: 28px;
+      text-align: center;
+    }
+
+    .res-count {
+      font-family: 'Orbitron', monospace;
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: var(--green-sys);
+      text-shadow: 0 0 20px rgba(34,197,94,0.3);
+    }
+
+    .res-label {
+      font-size: 0.8rem;
+      color: var(--text-sec);
+      margin-top: 8px;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+
+    /* ─── MEALS ─────────────────────────────────────────── */
+    .meals-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .meal-item {
+      background: var(--surface-2);
+      border-left: 3px solid var(--rust);
+      padding: 20px 24px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text-sec);
+    }
+    .meal-item span { color: var(--dust); font-weight: 700; display: block; margin-bottom: 4px; }
+
+    /* ─── WIN SECTION ───────────────────────────────────── */
+    .win-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 40px;
+    }
+
+    .win-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 20px;
+      background: var(--surface-2);
+      border: 1px solid rgba(193,68,14,0.15);
+    }
+
+    .win-check {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--green-sys);
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+
+    .win-text {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-sec);
+      line-height: 1.4;
+    }
+
+    /* ─── AUTHOR ────────────────────────────────────────── */
+    .author-card {
+      background: var(--surface-2);
+      border: 1px solid rgba(193,68,14,0.2);
+      padding: 48px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 40px;
+      align-items: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .author-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, var(--rust-glow), var(--rust-dim));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Orbitron', monospace;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 0 30px rgba(193,68,14,0.3);
+    }
+
+    .author-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-pri);
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .author-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--rust-glow);
+      margin-bottom: 16px;
+    }
+
+    .author-bio {
+      font-size: 0.9rem;
+      color: var(--text-sec);
+      line-height: 1.6;
+    }
+
+    /* ─── FOOTER ────────────────────────────────────────── */
+    footer {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 60px 40px;
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .footer-logo {
+      font-family: 'Orbitron', monospace;
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--rust);
+      letter-spacing: 0.2em;
+      margin-bottom: 16px;
+    }
+
+    .footer-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    /* ─── ANIMATIONS ────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* ─── STATUS BAR ────────────────────────────────────── */
+    .status-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 100;
+      background: var(--surface-1);
+      border-top: 1px solid rgba(193,68,14,0.2);
+      padding: 8px 40px;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green-sys);
+      box-shadow: 0 0 8px var(--green-sys);
+      animation: pulse 2s infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .status-item { color: var(--text-dim); }
+    .status-item span { color: var(--text-sec); }
+
+    /* ─── RESPONSIVE ────────────────────────────────────── */
+    @media (max-width: 768px) {
+      nav { padding: 16px 20px; }
+      .nav-links { display: none; }
+      .section { padding: 60px 20px; }
+      .problem-grid { grid-template-columns: 1fr; }
+      .energy-grid { grid-template-columns: 1fr; }
+      .resilience-grid { grid-template-columns: 1fr; }
+      .author-card { grid-template-columns: 1fr; text-align: center; }
+      .status-bar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Stars Background -->
+<div class="stars" id="stars"></div>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-logo">AUREA</div>
+  <ul class="nav-links">
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#energy">Energy</a></li>
+    <li><a href="#output">Output</a></li>
+    <li><a href="#resilience">Resilience</a></li>
+    <li><a href="#author">Researcher</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-planet"></div>
+  <div class="badge">NASA Mars Food Challenge — Submission 2025</div>
+  <h1>AUREA</h1>
+  <p class="hero-sub">Autonomous Unified Regenerative Ecosystem for Agriculture</p>
+  <p class="hero-desc">
+    A fully autonomous, closed-loop food ecosystem designed to sustain a Mars crew 
+    with minimal Earth dependency — integrating hydroponic agriculture, microbial protein 
+    systems, regolith nutrient extraction, and AI-driven robotics.
+  </p>
+  <div class="hero-cta">
+    <a href="#architecture" class="btn-primary">Explore System</a>
+    <a href="#author" class="btn-ghost">Meet the Researcher</a>
+  </div>
+</section>
+
+<!-- Problem -->
+<section id="problem" class="problem-strip">
+  <div class="problem-grid">
+    <div class="problem-item reveal">
+      <div class="problem-num">01</div>
+      <div class="problem-label">No Resupply</div>
+    </div>
+    <div class="problem-item reveal">
+      <div class="problem-num">02</div>
+      <div class="problem-label">Power Constraints</div>
+    </div>
+    <div class="problem-item reveal">
+      <div class="problem-num">03</div>
+      <div class="problem-label">Crew Time Scarcity</div>
+    </div>
+  </div>
+</section>
+
+<!-- Architecture -->
+<section id="architecture" class="section">
+  <span class="section-tag">System Design</span>
+  <h2 class="section-title">Integrated Closed-Loop Architecture</h2>
+
+  <div class="loop-diagram reveal">
+    <div class="loop-node">Crew CO₂</div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-node">Plants</div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-node">Food</div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-node">Crew</div>
+  </div>
+  <div class="loop-diagram reveal" style="margin-top: -24px;">
+    <div class="loop-node">Waste</div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-node">Bioreactor</div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-node">Nutrients</div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-node">Plants</div>
+  </div>
+
+  <div class="systems-grid" style="margin-top: 48px;">
+
+    <div class="sys-card reveal">
+      <div class="sys-num">SUBSYSTEM — 01</div>
+      <div class="sys-title">Hydroponic Crop Bays</div>
+      <div class="sys-desc">
+        Vertical stacked growth towers with aeroponic adaptation for Martian gravity (0.38g). 
+        Crops include potatoes, wheat, soy, leafy greens, and strawberries. Optimized for 
+        caloric density per watt of lighting input.
+      </div>
+      <div class="sys-tags">
+        <span class="tag">Aeroponics</span>
+        <span class="tag">0.38g Adapted</span>
+        <span class="tag">LED Spectrum</span>
+      </div>
+    </div>
+
+    <div class="sys-card reveal">
+      <div class="sys-num">SUBSYSTEM — 02</div>
+      <div class="sys-title">Protein Bioreactors</div>
+      <div class="sys-desc">
+        Dual algae reactors (Spirulina) producing fast oxygen and complete protein. Fungal 
+        bioreactors (mycoprotein) for meat-analog nutrition. Optional insect system fed from 
+        crop waste stream. Combined DHA algae strains address omega-3 gaps.
+      </div>
+      <div class="sys-tags">
+        <span class="tag">Spirulina</span>
+        <span class="tag">Mycoprotein</span>
+        <span class="tag">B12 Supplemented</span>
+      </div>
+    </div>
+
+    <div class="sys-card reveal">
+      <div class="sys-num">SUBSYSTEM — 03</div>
+      <div class="sys-title">Autonomous Crop Drone System</div>
+      <div class="sys-desc">
+        Overhead rail-mounted robotic system for plant health monitoring, pollination, 
+        disease detection, and harvesting. Eliminates routine agricultural labor. 
+        &lt;4 crew-hours per week at full operation.
+      </div>
+      <div class="sys-tags">
+        <span class="tag">ACDS</span>
+        <span class="tag">Computer Vision</span>
+        <span class="tag">Rail-Mounted</span>
+      </div>
+    </div>
+
+    <div class="sys-card reveal">
+      <div class="sys-num">SUBSYSTEM — 04</div>
+      <div class="sys-title">Regolith Nutrient Extraction</div>
+      <div class="sys-desc">
+        Processes Martian soil through a multi-stage pipeline: perchlorate bioremediation 
+        via perchlorate-reducing bacteria (Dechloromonas sp.), acid dissolution of phosphates, 
+        and atmospheric N₂ capture + nitrogen-fixing bacteria to close the nitrogen loop.
+      </div>
+      <div class="sys-tags">
+        <span class="tag">Perchlorate Remediation</span>
+        <span class="tag">N-Fixing Bacteria</span>
+        <span class="tag">In-Situ</span>
+      </div>
+    </div>
+
+    <div class="sys-card reveal">
+      <div class="sys-num">SUBSYSTEM — 05</div>
+      <div class="sys-title">Water Recovery System</div>
+      <div class="sys-desc">
+        Condensation recovery from atmosphere, urine purification (also primary nitrogen 
+        source — ~11g N/L × 22L crew output daily), and microbial filtration. 
+        Urine-N explicitly routed into nutrient cycle.
+      </div>
+      <div class="sys-tags">
+        <span class="tag">&gt;95% Reuse</span>
+        <span class="tag">Urine-N Loop</span>
+        <span class="tag">Microbial Filter</span>
+      </div>
+    </div>
+
+    <div class="sys-card reveal">
+      <div class="sys-num">SUBSYSTEM — 06</div>
+      <div class="sys-title">AUREA OS — Control System</div>
+      <div class="sys-desc">
+        AI-driven ecosystem management with predictive crop modeling. Communication latency 
+        to Earth (4–24 min) makes autonomous AI control mandatory, not optional. Rad-hardened 
+        primary controllers with shielded consumer hardware for non-critical monitoring.
+      </div>
+      <div class="sys-tags">
+        <span class="tag">Autonomous AI</span>
+        <span class="tag">Rad-Hardened</span>
+        <span class="tag">Manual Override</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- Energy -->
+<section id="energy" class="section">
+  <span class="section-tag">Power Model</span>
+  <h2 class="section-title">Energy Architecture</h2>
+
+  <div class="energy-grid">
+    <table class="power-table reveal">
+      <thead>
+        <tr>
+          <th>Subsystem</th>
+          <th>% Allocation</th>
+          <th>Priority</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Lighting (Dynamic Zones)</td><td>50%</td><td>Critical</td></tr>
+        <tr><td>Pumps &amp; Circulation</td><td>20%</td><td>Critical</td></tr>
+        <tr><td>Bioreactors</td><td>15%</td><td>High</td></tr>
+        <tr><td>Robotics (ACDS)</td><td>10%</td><td>Medium</td></tr>
+        <tr><td>AI / Control Systems</td><td>5%</td><td>Critical</td></tr>
+      </tbody>
+    </table>
+
+    <div class="power-bar-wrap reveal">
+      <p style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--rust-glow);margin-bottom:20px;">Power Distribution</p>
+      <div class="power-bar-item">
+        <div class="power-bar-label"><span>Lighting</span><span>50%</span></div>
+        <div class="power-bar-track"><div class="power-bar-fill" style="width:50%"></div></div>
+      </div>
+      <div class="power-bar-item">
+        <div class="power-bar-label"><span>Pumps</span><span>20%</span></div>
+        <div class="power-bar-track"><div class="power-bar-fill" style="width:20%"></div></div>
+      </div>
+      <div class="power-bar-item">
+        <div class="power-bar-label"><span>Bioreactors</span><span>15%</span></div>
+        <div class="power-bar-track"><div class="power-bar-fill" style="width:15%"></div></div>
+      </div>
+      <div class="power-bar-item">
+        <div class="power-bar-label"><span>Robotics</span><span>10%</span></div>
+        <div class="power-bar-track"><div class="power-bar-fill" style="width:10%"></div></div>
+      </div>
+      <div class="power-bar-item">
+        <div class="power-bar-label"><span>AI / Control</span><span>5%</span></div>
+        <div class="power-bar-track"><div class="power-bar-fill" style="width:5%"></div></div>
+      </div>
+      <p style="margin-top:24px;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--text-dim);letter-spacing:0.1em;">
+        ✦ Power source: Kilopower-class fission reactor (10–40kW) — the only realistic Mars surface option.
+        Dynamic lighting zones reduce consumption by ~30%.
+      </p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- Output -->
+<section id="output" class="section">
+  <span class="section-tag">Annual Production</span>
+  <h2 class="section-title">Food Output Projections</h2>
+
+  <div class="food-grid reveal">
+    <div class="food-card">
+      <div class="food-icon">🥔</div>
+      <div class="food-name">Potatoes</div>
+      <div class="food-amount">2,000</div>
+      <div class="food-unit">kg / year</div>
+    </div>
+    <div class="food-card">
+      <div class="food-icon">🥬</div>
+      <div class="food-name">Leafy Greens</div>
+      <div class="food-amount">1,200</div>
+      <div class="food-unit">kg / year</div>
+    </div>
+    <div class="food-card">
+      <div class="food-icon">🫘</div>
+      <div class="food-name">Soybeans</div>
+      <div class="food-amount">600</div>
+      <div class="food-unit">kg / year</div>
+    </div>
+    <div class="food-card">
+      <div class="food-icon">🌿</div>
+      <div class="food-name">Algae Protein</div>
+      <div class="food-amount">800</div>
+      <div class="food-unit">kg / year</div>
+    </div>
+    <div class="food-card">
+      <div class="food-icon">🍄</div>
+      <div class="food-name">Mycoprotein</div>
+      <div class="food-amount">900</div>
+      <div class="food-unit">kg / year</div>
+    </div>
+  </div>
+
+  <div style="margin-top:32px;padding:20px 24px;background:var(--surface-2);border-left:3px solid var(--amber);font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--text-sec);line-height:1.8;" class="reveal">
+    <span style="color:var(--amber);display:block;margin-bottom:8px;letter-spacing:0.15em;">⚠ HYBRID APPROACH NOTE</span>
+    Current yields provide a growing foundation while mature system capacity scales. 
+    A stored-food bridge supply covers caloric gaps during the first 18–24 months of operation 
+    as the ecosystem reaches full productivity. This mirrors standard Mars mission architecture planning.
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- Resilience -->
+<section id="resilience" class="section">
+  <span class="section-tag">Failure Resilience</span>
+  <h2 class="section-title">Redundancy by Design</h2>
+
+  <div class="resilience-grid">
+    <div class="res-card reveal">
+      <div class="res-count">3×</div>
+      <div class="res-label">Independent Crop Zones</div>
+    </div>
+    <div class="res-card reveal">
+      <div class="res-count">2×</div>
+      <div class="res-label">Algae Reactor Systems</div>
+    </div>
+    <div class="res-card reveal">
+      <div class="res-count">2×</div>
+      <div class="res-label">Fungal Bioreactors</div>
+    </div>
+  </div>
+
+  <div style="margin-top:40px;">
+    <div class="win-grid">
+      <div class="win-item reveal">
+        <span class="win-check">[✓]</span>
+        <span class="win-text">Autonomous AI control — no Earth comms required</span>
+      </div>
+      <div class="win-item reveal">
+        <span class="win-check">[✓]</span>
+        <span class="win-text">Regolith perchlorate bioremediation subsystem</span>
+      </div>
+      <div class="win-item reveal">
+        <span class="win-check">[✓]</span>
+        <span class="win-text">Nitrogen closed-loop via urine-N + N-fixing bacteria</span>
+      </div>
+      <div class="win-item reveal">
+        <span class="win-check">[✓]</span>
+        <span class="win-text">Radiation-hardened compute cluster</span>
+      </div>
+      <div class="win-item reveal">
+        <span class="win-check">[✓]</span>
+        <span class="win-text">Aeroponic modules adapted for 0.38g fluid dynamics</span>
+      </div>
+      <div class="win-item reveal">
+        <span class="win-check">[✓]</span>
+        <span class="win-text">B12 + Omega-3 coverage via DHA-producing algae strains</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- Meals -->
+<section class="section">
+  <span class="section-tag">Human Experience</span>
+  <h2 class="section-title">Meals That Sustain More Than Biology</h2>
+
+  <div class="meals-list">
+    <div class="meal-item reveal">
+      <span>Daily Staple</span>Mycoprotein "steak" + roasted potatoes
+    </div>
+    <div class="meal-item reveal">
+      <span>Freshness</span>Hydroponic herb wraps with soy filling
+    </div>
+    <div class="meal-item reveal">
+      <span>Protein Boost</span>Spirulina algae smoothies
+    </div>
+    <div class="meal-item reveal">
+      <span>Morale Meal</span>Hydroponic strawberries + microgreen salad
+    </div>
+  </div>
+
+  <p style="margin-top:32px;color:var(--text-sec);font-size:0.95rem;line-height:1.7;max-width:700px;" class="reveal">
+    Crew participation in harvest and meal preparation is intentional system design — 
+    not overhead. Interaction with living systems reduces psychological strain during 
+    long-duration isolation. AUREA is engineered for morale, not just survival.
+  </p>
+</section>
+
+<div class="divider"></div>
+
+<!-- Author -->
+<section id="author" class="section">
+  <span class="section-tag">Researcher</span>
+  <h2 class="section-title" style="text-align:center;">Submitted By</h2>
+
+  <div class="author-card reveal">
+    <div class="author-avatar">SD</div>
+    <div>
+      <div class="author-name">Shiann Davis</div>
+      <div class="author-title">Senior CS Student · SD Davis Enterprises · Ozark, MO</div>
+      <div class="author-bio">
+        Multi-venture technologist and entrepreneur with experience in autonomous systems, 
+        hardware integration, AI-driven platforms, and closed-loop infrastructure design. 
+        Systems architect behind six active ventures spanning fintech, IoT, blockchain, 
+        and off-grid eco-systems. AUREA applies the same closed-loop, autonomous-first 
+        engineering philosophy to planetary-scale food survival.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-logo">AUREA</div>
+  <div class="footer-sub">NASA Mars Food Challenge · SD Davis Enterprises · 2025</div>
+</footer>
+
+<!-- Status Bar -->
+<div class="status-bar">
+  <div class="status-dot"></div>
+  <div class="status-item">System: <span>AUREA-OS v1.0</span></div>
+  <div class="status-item">Crew: <span>6–15 Personnel</span></div>
+  <div class="status-item">Water Recycling: <span>&gt;95%</span></div>
+  <div class="status-item">Crew Labor: <span>&lt;4 hrs/wk</span></div>
+  <div class="status-item">Status: <span style="color:var(--green-sys)">OPERATIONAL</span></div>
+</div>
+
+<script>
+  // ── Generate stars
+  const starsEl = document.getElementById('stars');
+  for (let i = 0; i < 180; i++) {
+    const s = document.createElement('span');
+    const size = Math.random() * 2 + 0.5;
+    s.style.cssText = `
+      width:${size}px; height:${size}px;
+      top:${Math.random() * 100}%;
+      left:${Math.random() * 100}%;
+      --dur:${2 + Math.random() * 4}s;
+      --delay:${Math.random() * 4}s;
+    `;
+    starsEl.appendChild(s);
+  }
+
+  // ── Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  reveals.forEach(el => observer.observe(el));
+
+  // ── Animate power bars on scroll
+  const barObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.querySelectorAll('.power-bar-fill').forEach(bar => {
+          const w = bar.style.width;
+          bar.style.width = '0%';
+          setTimeout(() => bar.style.width = w, 200);
+        });
+        barObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  document.querySelectorAll('.power-bar-wrap').forEach(el => barObserver.observe(el));
+</script>
+</body>
+</html>
